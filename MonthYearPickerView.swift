@@ -3,24 +3,27 @@
 //
 //  Created by Ben Dodson on 15/04/2015.
 //  Modified by Jiayang Miao on 24/10/2016 to support Swift 3
+//  Modified by David Luque on 24/01/2018 to get default date
 //
 
 import UIKit
 
 class MonthYearPickerView: UIPickerView, UIPickerViewDelegate, UIPickerViewDataSource {
     
-    var months: [String]!
-    var years: [Int]!
+    var months = [String]()
+    var years = [Int]()
     
-    var month: Int = 0 {
+    var month = Calendar.current.component(.month, from: Date()) {
         didSet {
-            selectRow(month-1, inComponent: 0, animated: false)
+            selectRow(month - 1, inComponent: 0, animated: false)
         }
     }
     
-    var year: Int = 0 {
+    var year = Calendar.current.component(.year, from: Date()) {
         didSet {
-            selectRow(years.index(of: year)!, inComponent: 1, animated: true)
+            if let firstYearIndex = years.firstIndex(of: year) {
+                selectRow(firstYearIndex, inComponent: 1, animated: true)
+            }
         }
     }
     
@@ -28,19 +31,19 @@ class MonthYearPickerView: UIPickerView, UIPickerViewDelegate, UIPickerViewDataS
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.commonSetup()
+        commonSetup()
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        self.commonSetup()
+        commonSetup()
     }
     
     func commonSetup() {
         // population years
         var years: [Int] = []
         if years.count == 0 {
-            var year = NSCalendar(identifier: NSCalendar.Identifier.gregorian)!.component(.year, from: NSDate() as Date)
+            var year = Calendar(identifier: .gregorian).component(.year, from: Date())
             for _ in 1...15 {
                 years.append(year)
                 year += 1
@@ -57,15 +60,14 @@ class MonthYearPickerView: UIPickerView, UIPickerViewDelegate, UIPickerViewDataS
         }
         self.months = months
         
-        self.delegate = self
-        self.dataSource = self
+        delegate = self
+        dataSource = self
         
-        let currentMonth = NSCalendar(identifier: NSCalendar.Identifier.gregorian)!.component(.month, from: NSDate() as Date)
-        self.selectRow(currentMonth - 1, inComponent: 0, animated: false)
+        let currentMonth = Calendar(identifier: .gregorian).component(.month, from: Date())
+        selectRow(currentMonth - 1, inComponent: 0, animated: false)
     }
     
     // Mark: UIPicker Delegate / Data Source
-    
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 2
     }
@@ -93,8 +95,8 @@ class MonthYearPickerView: UIPickerView, UIPickerViewDelegate, UIPickerViewDataS
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        let month = self.selectedRow(inComponent: 0)+1
-        let year = years[self.selectedRow(inComponent: 1)]
+        let month = selectedRow(inComponent: 0) + 1
+        let year = years[selectedRow(inComponent: 1)]
         if let block = onDateSelected {
             block(month, year)
         }
